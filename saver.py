@@ -42,10 +42,7 @@ def data_saver(pipeline, path='./'):
         while True:
             data = list()
             # Get data
-            try:
-                data.append(pipeline.recv())
-            except Exception as e:
-                logger.error('Exception: ' + str(e))
+            data.append(pipeline.recv())
 
             if not d_queue.full():
                 d_queue.put(data)
@@ -86,14 +83,17 @@ class SocketCommunication(th.Thread):
     
 
     def run(self):
-        serversocket = self.initSocket(5000)
+        try:
+            serversocket = self.initSocket(5000)
+        except socket.error:
+            print('Fail to init socket. Exiting.')
+            sys.exit(1)
     
         while self.running:
             # Wait for some client. 
             try:
                 (clientsocket, address) = serversocket.accept()
             except socket.timeout:
-                print('Waiting for clients.')
                 continue
     
             # Run loop with data sending
@@ -129,7 +129,6 @@ class SocketCommunication(th.Thread):
                         clientsocket.sendall(result.encode('ascii'))
     
                 except Exception as e:
-                    print(e)
                     print('Exception while communication with user.')
                     break
     
@@ -138,5 +137,4 @@ class SocketCommunication(th.Thread):
         serversocket.close()
 
     def stop(self):
-        print('stop is called')
         self.running = False

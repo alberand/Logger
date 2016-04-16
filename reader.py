@@ -31,7 +31,7 @@ def init_communication(port='/dev/ttyAMA0', baudrate=115200, timeout=None):
         return inpoint
     except SerialException:
         logger.error('Fail to open the port. Exiting.')
-        sys.exit(0)
+        sys.exit(1)
 
 def start_sensor(inpoint):
     '''
@@ -78,5 +78,9 @@ def readline(inpoint):
     Returns:
         line or False
     '''
-    return inpoint.readline()
+    try:
+        return inpoint.readline()
+    except SerialException:
+        logger.error('Fail to read from the sensor.')
+        return False
 

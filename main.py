@@ -15,6 +15,13 @@ from calibration import parse_data_string
 from generator import Generator
 from settings import config
 
+def init_sensor():
+    inpoint = init_communication()
+    if not start_sensor(inpoint):
+        sys.exit(1)
+
+    return inpoint
+
 if __name__ == '__main__':
     # Load the logging configuration
     logging.config.fileConfig('logging.ini')
@@ -35,11 +42,13 @@ if __name__ == '__main__':
         inpoint = Generator()
     else:
         logger.info('Run in normal mode.')
-        inpoint = init_communication()
-        if not start_sensor(inpoint):
-            sys.exit(0)
+
+        inpoint = init_sensor()
         # A few reading
-        readline(inpoint)
+        if readline(inpoint):
+            logger.error('Error while reading from sensor. Exiting.')
+            sys.exit(1)
+
         readline(inpoint)
 
     # GPIO setup
@@ -86,6 +95,9 @@ if __name__ == '__main__':
             except SerialException as e:
                 logger.error('Main cycle: Error occured while reading from port.')
                 logger.error('Excpetion: ' + str(e))
+                inpoint = init_sensor()
+                continue
+                
             
             # Debug
             if config['debug']:

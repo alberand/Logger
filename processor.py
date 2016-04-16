@@ -97,11 +97,7 @@ def process_data(pipeline, samples, path='./'):
     try:
         while True:
             # Get data from pipeline
-            # try:
             data = pipeline.recv()    
-            # except Exception as e:
-                # logger.error('Some exception occured while reading from pipeline.')
-                # logger.error('Exception' + str(e))
 
             # Get current time 
             currtime = datetime.datetime.now()
