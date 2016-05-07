@@ -45,11 +45,13 @@ if __name__ == '__main__':
 
         inpoint = init_sensor()
         # A few reading
-        if readline(inpoint):
+        if not readline(inpoint):
             logger.error('Error while reading from sensor. Exiting.')
             sys.exit(1)
 
         readline(inpoint)
+
+    logger.info('Sensor successfully initialized.')
 
     # GPIO setup
     # This section is for testing

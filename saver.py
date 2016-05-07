@@ -89,50 +89,61 @@ class SocketCommunication(th.Thread):
             print('Fail to init socket. Exiting.')
             sys.exit(1)
     
-        while self.running:
-            # Wait for some client. 
-            try:
-                (clientsocket, address) = serversocket.accept()
-            except socket.timeout:
-                continue
-    
-            # Run loop with data sending
+        try:
             while self.running:
-                msg = None
+                # Wait for some client. 
+                print('Wait for clients')
                 try:
-                    # Wait untill user input some symbol or timeout is exceded.
-                    ready = select.select([clientsocket], [], [], 5)
-                    if ready[0]:
-                        msg = clientsocket.recv(3)
+                    (clientsocket, address) = serversocket.accept()
+                except socket.timeout:
+                    continue
+    
+                # Run loop with data sending
+                while self.running:
+                    msg = None
+                    try:
+                        # Wait untill user input some symbol or timeout is exceded.
+                        print('Wait for command')
+                        try:
+                            ready = select.select([clientsocket], [], [], 5)
+                        except Exception as e:
+                            print('Fail to read from client')
+                            print(e)
+                        if ready[0]:
+                            msg = clientsocket.recv(3)
 
-                    if not msg:
-                        continue
+                        if not msg:
+                            continue
 
-                    # Parse message from user
-                    if str(msg[0]) == '113':
+                        # print('Command is received ' + str(msg))
+                        # Parse message from user
+                        if str(msg[0]) == '113':
+                            break
+                        elif msg:
+                            # print('Connection from', address)
+                            # c_time = datetime.datetime.now()
+                            # while datetime.datetime.now().microsecond > c_time.microsecond:
+                            while True:
+                                if not self.queue.empty():
+                                    data = self.queue.get()
+                                    break
+                                else:
+                                    continue
+
+                            result = ';'
+                            result = result.join(list(map(str, data[0])))
+
+                            print(result)
+                            clientsocket.sendall(result.encode('ascii'))
+    
+                    except Exception as e:
+                        print('Exception while communication with user.')
                         break
-                    elif msg:
-                        print('Connection from', address)
-                        # c_time = datetime.datetime.now()
-                        # while datetime.datetime.now().microsecond > c_time.microsecond:
-                        while True:
-                            if not self.queue.empty():
-                                data = self.queue.get()
-                                break
-                            else:
-                                continue
-
-                        result = ';'
-                        result = result.join(list(map(str, data[0])))
-
-                        print(result)
-                        clientsocket.sendall(result.encode('ascii'))
     
-                except Exception as e:
-                    print('Exception while communication with user.')
-                    break
-    
-            clientsocket.close()
+                clientsocket.close()
+        except Exception:
+            print('Exception')
+            print(e)
 
         serversocket.close()
 
